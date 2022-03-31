@@ -59,16 +59,16 @@
 #define         MAX_LIGHTS                  4                                       // Max lights supported by shader
 #define         MAX_MIPMAP_LEVELS           5                                       // Max number of prefilter texture mipmaps
 
-#define         PATH_PBR_VS                 "resources/shaders/pbr.vs"              // Path to physically based rendering vertex shader
-#define         PATH_PBR_FS                 "resources/shaders/pbr.fs"              // Path to physically based rendering fragment shader
-#define         PATH_CUBE_VS                "resources/shaders/cubemap.vs"          // Path to equirectangular to cubemap vertex shader
-#define         PATH_CUBE_FS                "resources/shaders/cubemap.fs"          // Path to equirectangular to cubemap fragment shader
-#define         PATH_SKYBOX_VS              "resources/shaders/skybox.vs"           // Path to skybox vertex shader
-#define         PATH_SKYBOX_FS              "resources/shaders/skybox.fs"           // Path to skybox vertex shader
-#define         PATH_IRRADIANCE_FS          "resources/shaders/irradiance.fs"       // Path to irradiance (GI) calculation fragment shader
-#define         PATH_PREFILTER_FS           "resources/shaders/prefilter.fs"        // Path to reflection prefilter calculation fragment shader
-#define         PATH_BRDF_VS                "resources/shaders/brdf.vs"             // Path to bidirectional reflectance distribution function vertex shader 
-#define         PATH_BRDF_FS                "resources/shaders/brdf.fs"             // Path to bidirectional reflectance distribution function fragment shader
+#define         PATH_PBR_VS                 "../release/resources/shaders/pbr.vs"              // Path to physically based rendering vertex shader
+#define         PATH_PBR_FS                 "../release/resources/shaders/pbr.fs"              // Path to physically based rendering fragment shader
+#define         PATH_CUBE_VS                "../release/resources/shaders/cubemap.vs"          // Path to equirectangular to cubemap vertex shader
+#define         PATH_CUBE_FS                "../release/resources/shaders/cubemap.fs"          // Path to equirectangular to cubemap fragment shader
+#define         PATH_SKYBOX_VS              "../release/resources/shaders/skybox.vs"           // Path to skybox vertex shader
+#define         PATH_SKYBOX_FS              "../release/resources/shaders/skybox.fs"           // Path to skybox vertex shader
+#define         PATH_IRRADIANCE_FS          "../release/resources/shaders/irradiance.fs"       // Path to irradiance (GI) calculation fragment shader
+#define         PATH_PREFILTER_FS           "../release/resources/shaders/prefilter.fs"        // Path to reflection prefilter calculation fragment shader
+#define         PATH_BRDF_VS                "../release/resources/shaders/brdf.vs"             // Path to bidirectional reflectance distribution function vertex shader 
+#define         PATH_BRDF_FS                "../release/resources/shaders/brdf.fs"             // Path to bidirectional reflectance distribution function fragment shader
 
 //----------------------------------------------------------------------------------
 // Structs and enums
@@ -173,8 +173,8 @@ MaterialPBR SetupMaterialPBR(Environment env, Color albedo, int metalness, int r
     // Set up material properties color
     mat.albedo.color = albedo;
     mat.normals.color = (Color){ 128, 128, 255, 255 };
-    mat.metalness.color = (Color){ metalness, 0, 0, 0 };
-    mat.roughness.color = (Color){ roughness, 0, 0, 0 };
+    mat.metalness.color = (Color){ static_cast<unsigned char>(metalness), 0, 0, 0 };
+    mat.roughness.color = (Color){ static_cast<unsigned char>(roughness), 0, 0, 0 };
     mat.ao.color = (Color){ 255, 255, 255, 255 };
     mat.emission.color = (Color){ 0, 0, 0, 0 };
     mat.height.color = (Color){ 0, 0, 0, 0 };
@@ -226,13 +226,13 @@ MaterialPBR SetupMaterialPBR(Environment env, Color albedo, int metalness, int r
     mat.height.colorLoc = GetShaderLocation(mat.env.pbrShader, "height.color");
 
     // Set up PBR shader material texture units
-    SetShaderValuei(mat.env.pbrShader, mat.albedo.bitmapLoc, (int[1]){ 3 }, 1);
-    SetShaderValuei(mat.env.pbrShader, mat.normals.bitmapLoc, (int[1]){ 4 }, 1);
-    SetShaderValuei(mat.env.pbrShader, mat.metalness.bitmapLoc, (int[1]){ 5 }, 1);
-    SetShaderValuei(mat.env.pbrShader, mat.roughness.bitmapLoc, (int[1]){ 6 }, 1);
-    SetShaderValuei(mat.env.pbrShader, mat.ao.bitmapLoc, (int[1]){ 7 }, 1);
-    SetShaderValuei(mat.env.pbrShader, mat.emission.bitmapLoc, (int[1]){ 8 }, 1);
-    SetShaderValuei(mat.env.pbrShader, mat.height.bitmapLoc, (int[1]){ 9 }, 1);
+    SetShaderValue(mat.env.pbrShader, mat.albedo.bitmapLoc, (int[1]){ 3 }, 1);
+    SetShaderValue(mat.env.pbrShader, mat.normals.bitmapLoc, (int[1]){ 4 }, 1);
+    SetShaderValue(mat.env.pbrShader, mat.metalness.bitmapLoc, (int[1]){ 5 }, 1);
+    SetShaderValue(mat.env.pbrShader, mat.roughness.bitmapLoc, (int[1]){ 6 }, 1);
+    SetShaderValue(mat.env.pbrShader, mat.ao.bitmapLoc, (int[1]){ 7 }, 1);
+    SetShaderValue(mat.env.pbrShader, mat.emission.bitmapLoc, (int[1]){ 8 }, 1);
+    SetShaderValue(mat.env.pbrShader, mat.height.bitmapLoc, (int[1]){ 9 }, 1);
 
     return mat;
 }
@@ -361,7 +361,7 @@ Light CreateLight(int type, Vector3 pos, Vector3 targ, Color color, Environment 
     if (lightsCount < MAX_LIGHTS)
     {
         light.enabled = true;
-        light.type = type;
+        light.type = static_cast<LightType>(type);
         light.position = pos;
         light.target = targ;
         light.color = color;
@@ -424,21 +424,21 @@ Environment LoadEnvironment(const char *filename, int cubemapSize, int irradianc
     int prefilterRoughnessLoc = GetShaderLocation(prefilterShader, "roughness");
 
     // Set up environment shader texture units
-    SetShaderValuei(env.pbrShader, GetShaderLocation(env.pbrShader, "irradianceMap"), (int[1]){ 0 }, 1);
-    SetShaderValuei(env.pbrShader, GetShaderLocation(env.pbrShader, "prefilterMap"), (int[1]){ 1 }, 1);
-    SetShaderValuei(env.pbrShader, GetShaderLocation(env.pbrShader, "brdfLUT"), (int[1]){ 2 }, 1);
+    SetShaderValue(env.pbrShader, GetShaderLocation(env.pbrShader, "irradianceMap"), (int[1]){ 0 }, 1);
+    SetShaderValue(env.pbrShader, GetShaderLocation(env.pbrShader, "prefilterMap"), (int[1]){ 1 }, 1);
+    SetShaderValue(env.pbrShader, GetShaderLocation(env.pbrShader, "brdfLUT"), (int[1]){ 2 }, 1);
 
     // Set up cubemap shader constant values
-    SetShaderValuei(cubeShader, GetShaderLocation(cubeShader, "equirectangularMap"), (int[1]){ 0 }, 1);
+    SetShaderValue(cubeShader, GetShaderLocation(cubeShader, "equirectangularMap"), (int[1]){ 0 }, 1);
 
     // Set up irradiance shader constant values
-    SetShaderValuei(irradianceShader, GetShaderLocation(irradianceShader, "environmentMap"), (int[1]){ 0 }, 1);
+    SetShaderValue(irradianceShader, GetShaderLocation(irradianceShader, "environmentMap"), (int[1]){ 0 }, 1);
 
     // Set up prefilter shader constant values
-    SetShaderValuei(prefilterShader, GetShaderLocation(prefilterShader, "environmentMap"), (int[1]){ 0 }, 1);
+    SetShaderValue(prefilterShader, GetShaderLocation(prefilterShader, "environmentMap"), (int[1]){ 0 }, 1);
 
     // Set up skybox shader constant values
-    SetShaderValuei(env.skyShader, GetShaderLocation(env.skyShader, "environmentMap"), (int[1]){ 0 }, 1);
+    SetShaderValue(env.skyShader, GetShaderLocation(env.skyShader, "environmentMap"), (int[1]){ 0 }, 1);
 
     // Set up depth face culling and cube map seamless
     glDepthFunc(GL_LEQUAL);
@@ -471,7 +471,7 @@ Environment LoadEnvironment(const char *filename, int cubemapSize, int irradianc
 
     // Create projection (transposed) and different views for each face
     Matrix captureProjection = MatrixPerspective(90.0f, 1.0f, 0.01, 1000.0);
-    MatrixTranspose(&captureProjection);
+    MatrixTranspose(captureProjection);
     Matrix captureViews[6] = {
         MatrixLookAt((Vector3){ 0.0f, 0.0f, 0.0f }, (Vector3){ 1.0f, 0.0f, 0.0f }, (Vector3){ 0.0f, -1.0f, 0.0f }),
         MatrixLookAt((Vector3){ 0.0f, 0.0f, 0.0f }, (Vector3){ -1.0f, 0.0f, 0.0f }, (Vector3){ 0.0f, -1.0f, 0.0f }),
@@ -607,7 +607,7 @@ Environment LoadEnvironment(const char *filename, int cubemapSize, int irradianc
 
     // Then before rendering, configure the viewport to the actual screen dimensions
     Matrix defaultProjection = MatrixPerspective(60.0, (double)GetScreenWidth()/(double)GetScreenHeight(), 0.01, 1000.0);
-    MatrixTranspose(&defaultProjection);
+    MatrixTranspose(defaultProjection);
     SetShaderValueMatrix(cubeShader, cubeProjectionLoc, defaultProjection);
     SetShaderValueMatrix(env.skyShader, skyProjectionLoc, defaultProjection);
     SetShaderValueMatrix(irradianceShader, irradianceProjectionLoc, defaultProjection);
@@ -636,8 +636,8 @@ int GetLightsCount(void)
 void UpdateLightValues(Environment env, Light light)
 {
     // Send to shader light enabled state and type
-    SetShaderValuei(env.pbrShader, light.enabledLoc, (int[1]){ light.enabled }, 1);
-    SetShaderValuei(env.pbrShader, light.typeLoc, (int[1]){ light.type }, 1);
+    SetShaderValue(env.pbrShader, light.enabledLoc, (int[1]){ light.enabled }, 1);
+    SetShaderValue(env.pbrShader, light.typeLoc, (int[1]){ light.type }, 1);
 
     // Send to shader light position values
     float position[3] = { light.position.x, light.position.y, light.position.z };
@@ -687,13 +687,13 @@ void DrawModelPBR(Model model, MaterialPBR mat, Vector3 position, Vector3 rotati
     SetShaderValue(mat.env.pbrShader, mat.height.colorLoc, shaderHeight, 3);
 
     // Send sampler use state to PBR shader
-    SetShaderValuei(mat.env.pbrShader, mat.albedo.useBitmapLoc, (int[1]){ mat.albedo.useBitmap }, 1);
-    SetShaderValuei(mat.env.pbrShader, mat.normals.useBitmapLoc, (int[1]){ mat.normals.useBitmap }, 1);
-    SetShaderValuei(mat.env.pbrShader, mat.metalness.useBitmapLoc, (int[1]){ mat.metalness.useBitmap }, 1);
-    SetShaderValuei(mat.env.pbrShader, mat.roughness.useBitmapLoc, (int[1]){ mat.roughness.useBitmap }, 1);
-    SetShaderValuei(mat.env.pbrShader, mat.ao.useBitmapLoc, (int[1]){ mat.ao.useBitmap }, 1);
-    SetShaderValuei(mat.env.pbrShader, mat.emission.useBitmapLoc, (int[1]){ mat.emission.useBitmap }, 1);
-    SetShaderValuei(mat.env.pbrShader, mat.height.useBitmapLoc, (int[1]){ mat.height.useBitmap }, 1);
+    SetShaderValue(mat.env.pbrShader, mat.albedo.useBitmapLoc, (int[1]){ mat.albedo.useBitmap }, 1);
+    SetShaderValue(mat.env.pbrShader, mat.normals.useBitmapLoc, (int[1]){ mat.normals.useBitmap }, 1);
+    SetShaderValue(mat.env.pbrShader, mat.metalness.useBitmapLoc, (int[1]){ mat.metalness.useBitmap }, 1);
+    SetShaderValue(mat.env.pbrShader, mat.roughness.useBitmapLoc, (int[1]){ mat.roughness.useBitmap }, 1);
+    SetShaderValue(mat.env.pbrShader, mat.ao.useBitmapLoc, (int[1]){ mat.ao.useBitmap }, 1);
+    SetShaderValue(mat.env.pbrShader, mat.emission.useBitmapLoc, (int[1]){ mat.emission.useBitmap }, 1);
+    SetShaderValue(mat.env.pbrShader, mat.height.useBitmapLoc, (int[1]){ mat.height.useBitmap }, 1);
 
     // Calculate and send to shader model matrix
     Matrix matScale = MatrixScale(scale.x, scale.y, scale.z);
